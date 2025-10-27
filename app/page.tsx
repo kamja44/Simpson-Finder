@@ -1,6 +1,8 @@
 "use client";
 
+import FaceAnalyzer from "@/components/FaceAnalyzer";
 import Header from "@/components/Header";
+import ImageUploader from "@/components/ImageUploader";
 import { useState } from "react";
 
 /**
@@ -45,27 +47,24 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-yellow-100 to-yellow-200">
-      {/* Header 컴포넌트가 여기 들어갈 예정 */}
       <header className="py-8">
         <Header />
       </header>
 
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
-          {/* ImageUploader 컴포넌트가 여기 들어갈 예정 */}
           <div>
-            {/* TODO: ImageUploader 컴포넌트 추가 */}
-            {/* <ImageUploader onImageUpload={handleImageUpload} /> */}
+            <ImageUploader onImageUpload={handleImageUpload} />
           </div>
 
           {/* 이미지가 업로드되면 FaceAnalyzer 표시 */}
           {uploadedImage && !faceData && (
             <div>
               {/* TODO: FaceAnalyzer 컴포넌트 추가 */}
-              {/* <FaceAnalyzer 
-                image={uploadedImage} 
-                onAnalysisComplete={handleAnalysisComplete} 
-              /> */}
+              <FaceAnalyzer
+                image={uploadedImage}
+                onAnalysisComplete={handleAnalysisComplete}
+              />
             </div>
           )}
 
