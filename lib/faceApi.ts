@@ -25,14 +25,13 @@ export async function loadModels(): Promise<void> {
 
   try {
     console.log("Loading Face Api Models...");
-    const MODEL_URL = "/models";
+    const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model";
 
     // 병렬로 모든 모델 로딩
     await Promise.all([
       faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL), // 얼굴 감지
       faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL), // 랜드마크 (68 포인트)
       faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL), // 표정 인식
-      faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL), // 나이/성별 예측
       faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL), // 얼굴 인식 (descriptor)
     ]);
 
@@ -59,13 +58,24 @@ export async function detectFace(
       await loadModels();
     }
     console.log("Detecting face...");
+    console.log(
+      "Image dimensions:",
+      imageElement.width,
+      "x",
+      imageElement.height
+    );
+
+    // 얼굴 감지 옵션 (더 민감하게 설정)
+    const options = new faceapi.TinyFaceDetectorOptions({
+      inputSize: 416, // 더 높은 해상도 (기본값 416)
+      scoreThreshold: 0.3, // 낮은 임계값 = 더 민감하게 감지 (기본값 0.5)
+    });
 
     // 얼굴 감지 + 랜드마크 + 표정 + 나이/성별 + 디스크립터
     const detection = await faceapi
-      .detectSingleFace(imageElement, new faceapi.TinyFaceDetectorOptions())
+      .detectSingleFace(imageElement, options)
       .withFaceLandmarks()
       .withFaceExpressions()
-      .withAgeAndGender()
       .withFaceDescriptor();
 
     // 얼굴을 못찾은 경우
@@ -80,8 +90,6 @@ export async function detectFace(
     const faceData: FaceData = {
       landmarks: detection.landmarks,
       expressions: detection.expressions,
-      gender: detection.gender as "male" | "female",
-      age: Math.round(detection.age),
       descriptor: detection.descriptor,
     };
     return faceData;

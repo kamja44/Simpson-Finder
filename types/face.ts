@@ -23,18 +23,6 @@ export interface FaceData {
   expressions: faceapi.FaceExpressions;
 
   /**
-   * 성별 예측
-   * - 'male' 또는 'female'
-   */
-  gender: "male" | "female";
-
-  /**
-   * 나이 예측
-   * - 예측된 나이 값
-   */
-  age: number;
-
-  /**
    * 얼굴 디스크립터 (128차원 벡터)
    * - 용도: 얼굴 비교 및 매칭
    */
