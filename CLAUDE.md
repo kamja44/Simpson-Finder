@@ -1,6 +1,101 @@
 # Simpson Finder - 심슨 닮은꼴 찾기 서비스
 
 > 📅 **작성일**: 2025-10-22
+> 📅 **최종 수정**: 2025-10-23
+
+---
+
+## ⚠️ 중요 지침 (Claude 작업 규칙)
+
+**Claude는 사용자가 요청하기 전까지 파일을 직접 작성(Write/Edit)하지 않습니다.**
+
+- 모든 코드는 **코드 블록으로 보여주기만** 합니다
+- 사용자가 직접 파일을 생성하고 코드를 복사/붙여넣기 합니다
+- Claude는 코드 설명과 다음 단계를 안내합니다
+
+---
+
+## 📊 현재 진행 상황
+
+### ✅ 완료된 작업
+
+#### 1. 프로젝트 초기 설정
+- [x] Next.js 15 + TypeScript 프로젝트 생성
+- [x] 필수 패키지 설치 (Emotion, Face-API.js, shadcn/ui)
+- [x] shadcn 컴포넌트 추가 (button, card, progress)
+- [x] public/models/ 폴더 생성
+- [x] Face-API.js 모델 파일 다운로드 완료
+
+#### 2. 페이지 레이아웃
+- [x] app/page.tsx 작성 완료
+  - 상태 관리 (uploadedImage, faceData, matchedCharacter)
+  - 이벤트 핸들러 (handleImageUpload, handleAnalysisComplete, etc.)
+  - 조건부 렌더링 구조 설정
+
+#### 3. Header 컴포넌트
+- [x] components/Header.tsx 작성 완료
+  - Emotion으로 스타일링
+  - 심슨 테마 디자인 (노란색 그라데이션)
+  - 반응형 디자인
+  - app/page.tsx에 통합 완료
+
+### 🔄 현재 진행 중
+
+#### 4. ImageUploader 컴포넌트
+- [x] components/ImageUploader.tsx 코드 작성
+- [ ] app/page.tsx에 통합
+- [ ] 브라우저 테스트 (드래그 앤 드롭, 이미지 미리보기)
+
+### 📝 남은 작업
+
+#### 5. Face-API.js 연동
+- [ ] lib/faceApi.ts 작성
+  - 모델 로딩 함수
+  - 얼굴 감지 함수
+  - 특징 추출 함수
+- [ ] types/face.ts 작성 (얼굴 데이터 타입 정의)
+
+#### 6. FaceAnalyzer 컴포넌트
+- [ ] components/FaceAnalyzer.tsx 작성
+  - Face-API.js 호출
+  - 로딩 상태 표시 (Progress bar)
+  - 에러 처리
+- [ ] app/page.tsx에 통합
+- [ ] 브라우저 테스트
+
+#### 7. The Simpsons API 연동
+- [ ] services/simpsonsApi.ts 작성
+  - API 호출 함수
+  - 캐릭터 목록 조회
+- [ ] types/character.ts 작성 (캐릭터 타입 정의)
+- [ ] API 응답 테스트
+
+#### 8. CharacterMatcher 컴포넌트
+- [ ] components/CharacterMatcher.tsx 작성
+  - 얼굴 특징과 캐릭터 매칭 알고리즘
+  - 유사도 계산
+- [ ] app/page.tsx에 통합
+
+#### 9. ResultCard 컴포넌트
+- [ ] components/ResultCard.tsx 작성
+  - 캐릭터 정보 표시 (shadcn Card)
+  - 유사도 표시
+  - 다시 시도 버튼
+- [ ] app/page.tsx에 통합
+
+#### 10. 최종 통합 및 테스트
+- [ ] 전체 플로우 테스트
+- [ ] 에러 핸들링 보완
+- [ ] UI/UX 개선
+- [ ] 스타일링 최적화
+
+---
+
+## 🎯 다음 단계
+
+1. ImageUploader를 page.tsx에 통합하고 브라우저에서 테스트
+2. lib/faceApi.ts 작성 (Face-API.js 초기화)
+3. FaceAnalyzer 컴포넌트 작성
 
 ---
 
