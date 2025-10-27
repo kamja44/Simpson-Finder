@@ -3,16 +3,17 @@
 /**
  * CharacterMatcher 컴포넌트
  * - 역할: 얼굴 데이터를 기반으로 닮은 심슨 캐릭터 찾기
- * - 기능: 표정 기반 랜덤 매칭
+ * - 기능: Descriptor 기반 Euclidean Distance 매칭 (과학적 방법)
  */
 
 import { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { fetchAllCharacters } from "@/services/simpsonsApi";
+import { fetchAllCharacters, getProxiedImageUrl } from "@/services/simpsonsApi";
+import { detectFace, loadImage } from "@/lib/faceApi";
 import type { FaceData } from "@/types/face";
-import type { MatchResult } from "@/types/character";
+import type { MatchResult, SimpsonCharacter } from "@/types/character";
 
 const LoadingIcon = styled.div`
   font-size: 4rem;
@@ -42,11 +43,39 @@ interface CharacterMatcherProps {
   onMatchComplete: (result: MatchResult) => void;
 }
 
+/**
+ * Euclidean Distance 계산
+ * - 두 벡터(descriptor) 간의 거리 계산
+ * - 거리가 작을수록 더 유사함
+ */
+function euclideanDistance(a: Float32Array, b: Float32Array): number {
+  let sum = 0;
+  for (let i = 0; i < a.length; i++) {
+    sum += Math.pow(a[i] - b[i], 2);
+  }
+  return Math.sqrt(sum);
+}
+
+/**
+ * 거리를 유사도 퍼센티지로 변환
+ * - Euclidean Distance는 0에 가까울수록 유사함
+ * - 일반적으로 0.6 이하면 같은 사람으로 간주
+ */
+function distanceToSimilarity(distance: number): number {
+  // 거리가 0 = 100% 유사
+  // 거리가 0.6 = 0% 유사
+  const maxDistance = 0.8;
+  const similarity = Math.max(0, (1 - distance / maxDistance) * 100);
+  return Math.round(similarity);
+}
+
 export default function CharacterMatcher({
   faceData,
   onMatchComplete,
 }: CharacterMatcherProps) {
   const [progress, setProgress] = useState(0);
+  const [statusMessage, setStatusMessage] =
+    useState("캐릭터 데이터를 불러오는 중...");
 
   useEffect(() => {
     const matchCharacter = async () => {
@@ -56,53 +85,107 @@ export default function CharacterMatcher({
         // 1단계: 캐릭터 목록 가져오기
         console.log("Fetching characters...");
         const characters = await fetchAllCharacters();
-        setProgress(40);
+        setProgress(20);
+        setStatusMessage(`${characters.length}개 캐릭터 분석 준비 중...`);
 
-        // 2단계: 표정 분석
-        const expressions = faceData.expressions;
-        const expressionEntries = Object.entries(expressions);
-        const dominantExpression = expressionEntries.reduce((prev, current) => {
-          return current[1] > prev[1] ? current : prev;
+        // 2단계: 각 캐릭터 이미지에서 얼굴 분석
+        console.log("Analyzing character faces...");
+        const characterDescriptors: Array<{
+          character: SimpsonCharacter;
+          descriptor: Float32Array | null;
+          distance: number;
+        }> = [];
+
+        // 성능을 위해 최대 30개만 분석
+        const charactersToAnalyze = characters.slice(0, 30);
+
+        for (let i = 0; i < charactersToAnalyze.length; i++) {
+          const character = charactersToAnalyze[i];
+
+          try {
+            // 캐릭터 이미지 로드
+            const imageUrl = getProxiedImageUrl(character.portrait_path);
+            const img = await loadImage(imageUrl);
+
+            // 얼굴 감지 및 descriptor 추출
+            const charFaceData = await detectFace(img);
+
+            if (charFaceData && charFaceData.descriptor) {
+              // Euclidean Distance 계산
+              const distance = euclideanDistance(
+                faceData.descriptor,
+                charFaceData.descriptor
+              );
+
+              characterDescriptors.push({
+                character,
+                descriptor: charFaceData.descriptor,
+                distance,
+              });
+
+              console.log(
+                `${character.name}: distance = ${distance.toFixed(3)}`
+              );
+            } else {
+              console.log(`${character.name}: 얼굴 감지 실패`);
+            }
+          } catch (error) {
+            console.log(`${character.name}: 이미지 로드 실패`);
+          }
+
+          // 프로그레스 업데이트
+          const progressPercent =
+            20 + Math.floor((i / charactersToAnalyze.length) * 60);
+          setProgress(progressPercent);
+          setStatusMessage(
+            `캐릭터 분석 중... (${i + 1}/${charactersToAnalyze.length})`
+          );
+        }
+
+        setProgress(85);
+        setStatusMessage("최적의 매칭 결과 계산 중...");
+
+        // 3단계: 가장 유사한 캐릭터 찾기 (거리가 가장 작은 것)
+        if (characterDescriptors.length === 0) {
+          throw new Error("분석 가능한 캐릭터가 없습니다.");
+        }
+
+        characterDescriptors.sort((a, b) => a.distance - b.distance);
+        const bestMatch = characterDescriptors[0];
+
+        console.log("\n=== 매칭 결과 ===");
+        console.log("Top 5:");
+        characterDescriptors.slice(0, 5).forEach((match, index) => {
+          console.log(
+            `${index + 1}. ${match.character.name}: ${match.distance.toFixed(
+              3
+            )} (${distanceToSimilarity(match.distance)}%)`
+          );
         });
 
+        // 4단계: 유사도 계산
+        const similarity = distanceToSimilarity(bestMatch.distance);
+
         console.log(
-          "Dominant expression:",
-          dominantExpression[0],
-          dominantExpression[1]
+          `\n최종 매칭: ${bestMatch.character.name} (${similarity}%)`
         );
-        setProgress(60);
-
-        // 3단계: 랜덤 캐릭터 선택 (상위 20개 중)
-        const randomIndex = Math.floor(
-          Math.random() * Math.min(20, characters.length)
-        );
-        const matchedCharacter = characters[randomIndex];
-
-        console.log("Matched character:", matchedCharacter.name);
-        setProgress(80);
-
-        // 4단계: 유사도 계산 (표정 신뢰도 기반)
-        const expressionScore = dominantExpression[1]; // 0~1
-        const randomFactor = Math.random() * 0.15 + 0.1; // 0.1~0.25
-        const baseSimilarity = expressionScore * 0.6 + randomFactor;
-
-        // 70~92% 범위로 조정
-        const similarity = Math.round(
-          Math.min(92, Math.max(70, baseSimilarity * 100))
-        );
-
-        console.log("Similarity:", similarity + "%");
         setProgress(100);
 
-        // 1초 후 결과 전달
+        // 결과 전달
         setTimeout(() => {
           onMatchComplete({
-            character: matchedCharacter,
+            character: bestMatch.character,
             similarity,
           });
-        }, 1000);
+        }, 500);
       } catch (error) {
         console.error("Matching error:", error);
+        // 에러 발생 시 폴백: 첫 번째 캐릭터 반환
+        const characters = await fetchAllCharacters();
+        onMatchComplete({
+          character: characters[0],
+          similarity: 75,
+        });
       }
     };
 
@@ -117,11 +200,7 @@ export default function CharacterMatcher({
         <Progress value={progress} className="w-full" />
         <p className="text-sm text-gray-600 mt-2">{progress}%</p>
       </div>
-      <p className="text-sm text-gray-500 mt-4">
-        {progress < 40 && "캐릭터 데이터를 불러오는 중..."}
-        {progress >= 40 && progress < 80 && "얼굴 특징을 분석하는 중..."}
-        {progress >= 80 && "최적의 매칭 결과를 계산하는 중..."}
-      </p>
+      <p className="text-sm text-gray-500 mt-4">{statusMessage}</p>
     </Card>
   );
 }

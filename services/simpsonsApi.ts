@@ -16,7 +16,18 @@ const API_URL = `${API_BASE_URL}/api/characters`;
  * 초상화 경로를 전체 URL로 변환
  */
 export function getPortraitUrl(portraitPath: string): string {
+  // portraitPath 예시: "/character/3.webp"
   return `${CDN_BASE_URL}/500${portraitPath}`;
+}
+
+/**
+ * 프록시를 통한 이미지 URL 생성
+ * - 용도: CORS 우회를 위해 Next.js API Route를 통해 이미지 로드
+ * - Face-API 분석 시 사용
+ */
+export function getProxiedImageUrl(portraitPath: string): string {
+  const originalUrl = getPortraitUrl(portraitPath);
+  return `/api/proxy-image?url=${encodeURIComponent(originalUrl)}`;
 }
 
 /**
@@ -86,6 +97,7 @@ export async function fetchAllCharacters(): Promise<SimpsonCharacter[]> {
   // 성능을 위해 3페이지만 가져오기 (60개)
   return fetchMultiplePages(3);
 }
+
 /**
  * 캐릭터 ID로 특정 캐릭터 조회
  * - 용도: 특정 캐릭터 상세 정보 가져오기
