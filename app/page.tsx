@@ -4,6 +4,9 @@ import CharacterMatcher from "@/components/CharacterMatcher";
 import FaceAnalyzer from "@/components/FaceAnalyzer";
 import Header from "@/components/Header";
 import ImageUploader from "@/components/ImageUploader";
+import ResultCard from "@/components/ResultCard";
+import { MatchResult } from "@/types/character";
+import { FaceData } from "@/types/face";
 import { useState } from "react";
 
 /**
@@ -19,31 +22,31 @@ import { useState } from "react";
 
 export default function Home() {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null); // 업로드된 이미지 상태
-  const [faceData, setFaceData] = useState<any>(null); // 얼굴 분석 데이터 상태
-  const [matchedCharacter, setMatchedCharacter] = useState<any>(null);
+  const [faceData, setFaceData] = useState<FaceData | null>(null);
+  const [matchResult, setMatchResult] = useState<MatchResult | null>(null);
 
   // 이미지 업로드 핸들러
   const handleImageUpload = (imageUrl: string) => {
     setUploadedImage(imageUrl);
     setFaceData(null); // 새 이미지 업로드 시 기존 분석 데이터 초기화
-    setMatchedCharacter(null); // 새 이미지 업로드 시 기존 매칭 결과 초기화
+    setMatchResult(null); // 새 이미지 업로드 시 기존 매칭 결과 초기화
   };
 
   // 얼굴 분석 완료 핸들러
-  const handleAnalysisComplete = (data: any) => {
+  const handleAnalysisComplete = (data: FaceData) => {
     setFaceData(data);
   };
 
   // 매칭 완료 핸들러
-  const handleMatchComplete = (character: any) => {
-    setMatchedCharacter(character);
+  const handleMatchComplete = (character: MatchResult) => {
+    setMatchResult(character);
   };
 
   // 다시 시도 핸들러
   const handleRetry = () => {
     setUploadedImage(null);
     setFaceData(null);
-    setMatchedCharacter(null);
+    setMatchResult(null);
   };
 
   return (
@@ -53,43 +56,29 @@ export default function Home() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto space-y-8">
-          <div>
-            <ImageUploader onImageUpload={handleImageUpload} />
-          </div>
+        {/* 1단계: 이미지 업로드 */}
+        {!uploadedImage && <ImageUploader onImageUpload={handleImageUpload} />}
 
-          {/* 이미지가 업로드되면 FaceAnalyzer 표시 */}
-          {uploadedImage && !faceData && (
-            <div>
-              <FaceAnalyzer
-                image={uploadedImage}
-                onAnalysisComplete={handleAnalysisComplete}
-              />
-            </div>
-          )}
+        {/* 2단계: 얼굴 분석 */}
+        {uploadedImage && !faceData && (
+          <FaceAnalyzer
+            image={uploadedImage}
+            onAnalysisComplete={handleAnalysisComplete}
+          />
+        )}
 
-          {/* 얼굴 분석이 완료되면 CharacterMatcher 표시 */}
-          {faceData && !matchedCharacter && (
-            <div>
-              <CharacterMatcher
-                faceData={faceData}
-                onMatchComplete={handleMatchComplete}
-              />
-            </div>
-          )}
+        {/* 3단계: 캐릭터 매칭 */}
+        {faceData && !matchResult && (
+          <CharacterMatcher
+            faceData={faceData}
+            onMatchComplete={handleMatchComplete}
+          />
+        )}
 
-          {/* 매칭이 완료되면 ResultCard 표시 */}
-          {matchedCharacter && (
-            <div>
-              {/* TODO: ResultCard 컴포넌트 추가 */}
-              {/* <ResultCard 
-                character={matchedCharacter} 
-                similarity={matchedCharacter.similarity}
-                onRetry={handleRetry}
-              /> */}
-            </div>
-          )}
-        </div>
+        {/* 4단계: 결과 표시 */}
+        {matchResult && (
+          <ResultCard matchResult={matchResult} onRetry={handleRetry} />
+        )}
       </main>
     </div>
   );

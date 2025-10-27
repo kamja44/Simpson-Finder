@@ -9,13 +9,14 @@ import type { CharactersResponse, SimpsonCharacter } from "@/types/character";
  * API 엔드포인트
  */
 const API_BASE_URL = "https://thesimpsonsapi.com";
+const CDN_BASE_URL = "https://cdn.thesimpsonsapi.com"; // CDN 추가
 const API_URL = `${API_BASE_URL}/api/characters`;
 
 /**
  * 초상화 경로를 전체 URL로 변환
  */
 export function getPortraitUrl(portraitPath: string): string {
-  return `${API_BASE_URL}${portraitPath}`;
+  return `${CDN_BASE_URL}/500${portraitPath}`;
 }
 
 /**
