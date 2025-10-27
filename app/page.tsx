@@ -1,5 +1,6 @@
 "use client";
 
+import CharacterMatcher from "@/components/CharacterMatcher";
 import FaceAnalyzer from "@/components/FaceAnalyzer";
 import Header from "@/components/Header";
 import ImageUploader from "@/components/ImageUploader";
@@ -60,7 +61,6 @@ export default function Home() {
           {/* 이미지가 업로드되면 FaceAnalyzer 표시 */}
           {uploadedImage && !faceData && (
             <div>
-              {/* TODO: FaceAnalyzer 컴포넌트 추가 */}
               <FaceAnalyzer
                 image={uploadedImage}
                 onAnalysisComplete={handleAnalysisComplete}
@@ -71,11 +71,10 @@ export default function Home() {
           {/* 얼굴 분석이 완료되면 CharacterMatcher 표시 */}
           {faceData && !matchedCharacter && (
             <div>
-              {/* TODO: CharacterMatcher 컴포넌트 추가 */}
-              {/* <CharacterMatcher 
-                faceData={faceData} 
-                onMatchComplete={handleMatchComplete} 
-              /> */}
+              <CharacterMatcher
+                faceData={faceData}
+                onMatchComplete={handleMatchComplete}
+              />
             </div>
           )}
 
