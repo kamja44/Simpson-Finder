@@ -138,42 +138,6 @@ const CharacterName = styled.h2`
   }
 `;
 
-const InfoGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1rem;
-  margin: 2rem 0;
-  padding: 0 2rem;
-
-  @media (max-width: 768px) {
-    padding: 0 1rem;
-  }
-`;
-
-const InfoCard = styled.div`
-  padding: 1rem;
-  background: linear-gradient(135deg, #fff9e6 0%, #ffecb3 100%);
-  border-radius: 16px;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-`;
-
-const InfoLabel = styled.p`
-  font-size: 0.75rem;
-  color: #666;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.5rem;
-`;
-
-const InfoValue = styled.p`
-  font-size: 1rem;
-  font-weight: 700;
-  color: #ff6f00;
-  margin: 0;
-`;
-
 const Divider = styled.div`
   height: 1px;
   background: linear-gradient(90deg, transparent, #ddd, transparent);
@@ -206,14 +170,6 @@ export default function ResultCard({
   const [imageError, setImageError] = useState(false);
 
   const portraitUrl = getPortraitUrl(character.portrait_path);
-
-  const handleMoreInfo = () => {
-    // Simpson Wiki URL로 이동
-    const wikiUrl = `https://simpsons.fandom.com/wiki/${encodeURIComponent(
-      character.name
-    )}`;
-    window.open(wikiUrl, "_blank");
-  };
 
   return (
     <ResultContainer>
@@ -280,21 +236,6 @@ export default function ResultCard({
 
           {/* 버튼들 */}
           <ButtonContainer>
-            <Button
-              onClick={handleMoreInfo}
-              size="lg"
-              style={{
-                background: "linear-gradient(135deg, #ff6f00 0%, #ffa000 100%)",
-                color: "white",
-                fontWeight: "bold",
-                fontSize: "1.125rem",
-                padding: "1.25rem 2rem",
-                borderRadius: "20px",
-                cursor: "pointer",
-              }}
-            >
-              📚 심슨 정보가 더 궁금하신가요?
-            </Button>
             <Button
               onClick={onRetry}
               variant="outline"
