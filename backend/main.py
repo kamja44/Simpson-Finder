@@ -44,33 +44,54 @@ async def root():
 async def match_character(file: UploadFile = File(...)) -> Dict[str, Any]:
     """
     캐릭터 매칭 엔드포인트
-    
+
     Args:
         file: 업로드된 사용자 이미지
-    
+
     Returns:
-        matched_character: 매칭된 캐릭터 정보
+        character: 매칭된 캐릭터 정보
         similarity: 유사도 (0-100)
+        candidates: Top-3 후보 리스트 (선택적)
     """
     try:
         # 이미지 파일 검증
         if not file.content_type.startswith('image/'):
             raise HTTPException(status_code=400, detail='이미지 파일만 업로드 가능합니다.')
-        
+
         # 1. 업로드된 이미지 읽기
         image_data = await file.read()
+        print(f"📸 이미지 분석 중: {file.filename}")
 
         # 2. CLIP 임베딩 추출
         user_embedding = clip_service.extract_embedding(image_data)
+        print(f"✅ 임베딩 추출 완료 (차원: {user_embedding.shape})")
 
-        # 3. 가장 닮은 캐릭터 찾기
-        result = matching_service.find_best_match(user_embedding)
+        # 3. 가장 닮은 캐릭터 찾기 (Top-3, 임계값 없음)
+        print("🔍 캐릭터 매칭 중...")
+        result = matching_service.find_best_match(
+            user_embedding,
+            top_k=3,
+            threshold=None,  # Unknown 처리 비활성화 (항상 매칭)
+            score_mode="percent"
+        )
 
-        return result
-    
+        # 프론트엔드 호환성을 위한 응답 형식 변환
+        if result['top'] is not None:
+            response = {
+                "character": result['top']['character'],
+                "similarity": result['top']['score'],
+                "candidates": result['candidates']  # 추가 정보
+            }
+            print(f"✅ 매칭 완료: {response['character']['name']} ({response['similarity']}%)")
+            return response
+        else:
+            # Unknown 케이스 (임계값 설정 시)
+            raise HTTPException(status_code=422, detail="매칭 실패: 유사도가 너무 낮습니다.")
+
     except HTTPException:
         raise
     except Exception as e:
+        print(f"❌ 매칭 중 오류: {str(e)}")
         raise HTTPException(status_code=500, detail=f"매칭 중 오류 발생: {str(e)}")
     
 @app.get('/api/health')
