@@ -2,54 +2,111 @@
 
 import { MatchResult } from "@/types/character";
 import styled from "@emotion/styled";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { keyframes } from "@emotion/react";
+import { Card, CardContent } from "./ui/card";
 import { getPortraitUrl } from "@/services/simpsonsApi";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import Image from "next/image";
 
-interface ResultCardProps {
-  matchResult: MatchResult;
-  onRetry: () => void;
-}
-
-const ResultContainer = styled.div`
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 2rem;
+const fadeInScale = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 `;
 
-const ImagePlaceholder = styled.div`
-  width: 300px;
-  height: 300px;
-  margin: 0 auto 1.5rem;
+const ResultContainer = styled.div`
+  max-width: 900px;
+  margin: 0 auto;
+  animation: ${fadeInScale} 0.6s ease-out;
+`;
+
+const ResultCardStyled = styled(Card)`
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  border-radius: 24px;
+`;
+
+const Header = styled.div`
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem;
+  text-align: center;
+  color: white;
+`;
+
+const HeaderTitle = styled.h1`
+  font-size: 2rem;
+  font-weight: 900;
+  margin: 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+  }
+`;
+
+const ComparisonSection = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 3rem 2rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 2rem 1rem;
+  }
+`;
+
+const ImageCircle = styled.div`
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 5px solid #ffd54f;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  position: relative;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #ffd166 0%, #ffb703 100%);
+
+  @media (max-width: 768px) {
+    width: 150px;
+    height: 150px;
+  }
+`;
+
+const SimilarityContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #ffd166 0%, #ffb703 100%);
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  gap: 1rem;
+  flex-shrink: 0;
 `;
 
-const CharacterImageWrapper = styled.div`
-  width: 300px;
-  height: 300px;
-  position: relative;
-  margin: 0 auto 1.5rem;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  background: #ffd166;
+const ArrowIcon = styled.div`
+  font-size: 3rem;
+  color: #667eea;
+
+  @media (max-width: 768px) {
+    font-size: 2rem;
+    transform: rotate(90deg);
+  }
 `;
 
 const SimilarityBadge = styled.div<{ similarity: number }>`
-  display: inline-block;
-  padding: 0.5rem 1.5rem;
+  padding: 1rem 2rem;
   border-radius: 50px;
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin: 1rem 0;
+  font-size: 2rem;
+  font-weight: 900;
   background: ${(props) =>
     props.similarity >= 85
       ? "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
@@ -57,168 +114,204 @@ const SimilarityBadge = styled.div<{ similarity: number }>`
       ? "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
       : "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"};
   color: white;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+    padding: 0.75rem 1.5rem;
+  }
 `;
 
-const InfoSection = styled.div`
-  margin: 1.5rem 0;
+const CharacterName = styled.h2`
+  font-size: 2.5rem;
+  font-weight: 900;
   text-align: center;
+  background: linear-gradient(135deg, #ff6f00 0%, #ffa000 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 2rem 0 1rem;
+
+  @media (max-width: 768px) {
+    font-size: 2rem;
+  }
+`;
+
+const InfoGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+  padding: 0 2rem;
+
+  @media (max-width: 768px) {
+    padding: 0 1rem;
+  }
+`;
+
+const InfoCard = styled.div`
+  padding: 1rem;
+  background: linear-gradient(135deg, #fff9e6 0%, #ffecb3 100%);
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 `;
 
 const InfoLabel = styled.p`
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin-bottom: 0%.25rem;
+  font-size: 0.75rem;
+  color: #666;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
 `;
 
 const InfoValue = styled.p`
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #1f2937;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ff6f00;
+  margin: 0;
 `;
 
-const PhrasesSection = styled.div`
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background: #f9fafb;
-  border-radius: 8px;
+const Divider = styled.div`
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #ddd, transparent);
+  margin: 2rem 0;
 `;
 
-const PhraseItem = styled.li`
-  margin: 0.5rem 0;
-  color: #374151;
-  font-style: italic;
+const ButtonContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0 2rem 2rem;
+
+  @media (max-width: 768px) {
+    padding: 0 1rem 1.5rem;
+  }
 `;
 
-/**
- * ResultCard 컴포넌트
- * - 역할: 매칭 결과 표시 (캐릭터 이미지, 정보, 유사도)
- * - 기능:
- *   - 캐릭터 이미지 표시
- *   - 유사도 퍼센티지 표시
- *   - 캐릭터 정보 (이름, 직업, 상태)
- *   - 명대사 표시
- *   - 다시 시도 버튼
- */
-export default function ResultCard({ matchResult, onRetry }: ResultCardProps) {
+interface ResultCardProps {
+  matchResult: MatchResult;
+  onRetry: () => void;
+  uploadedImage: string; // 업로드한 사진 추가
+}
+
+export default function ResultCard({
+  matchResult,
+  onRetry,
+  uploadedImage,
+}: ResultCardProps) {
   const { character, similarity } = matchResult;
-
   const [imageError, setImageError] = useState(false);
 
   const portraitUrl = getPortraitUrl(character.portrait_path);
 
-  console.log("Portrait URL:", portraitUrl); // 디버깅용
+  const handleMoreInfo = () => {
+    // Simpson Wiki URL로 이동
+    const wikiUrl = `https://simpsons.fandom.com/wiki/${encodeURIComponent(
+      character.name
+    )}`;
+    window.open(wikiUrl, "_blank");
+  };
 
   return (
     <ResultContainer>
-      <Card>
-        <CardHeader>
-          <CardTitle style={{ textAlign: "center", fontSize: "1.5rem" }}>
-            🎉 당신의 심슨 닮은꼴!
-          </CardTitle>
-        </CardHeader>
+      <ResultCardStyled>
+        <Header>
+          <HeaderTitle>🎉 당신의 심슨 닮은꼴!</HeaderTitle>
+        </Header>
 
-        <CardContent>
-          {" "}
-          {/* 캐릭터 이미지 */}
-          {imageError ? (
-            <ImagePlaceholder>🎭</ImagePlaceholder>
-          ) : (
-            <CharacterImageWrapper>
+        <CardContent style={{ padding: 0 }}>
+          {/* 비교 섹션 */}
+          <ComparisonSection>
+            {/* 업로드한 사진 */}
+            <ImageCircle>
               <Image
-                src={portraitUrl}
-                alt={character.name}
-                width={300}
-                height={300}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                }}
-                onError={() => {
-                  console.error("Image load failed:", portraitUrl);
-                  setImageError(true);
-                }}
+                src={uploadedImage}
+                alt="업로드한 사진"
+                fill
+                style={{ objectFit: "cover" }}
                 unoptimized
               />
-            </CharacterImageWrapper>
-          )}
+            </ImageCircle>
+
+            {/* 유사도 */}
+            <SimilarityContainer>
+              <ArrowIcon>→</ArrowIcon>
+              <SimilarityBadge similarity={similarity}>
+                {similarity}%
+              </SimilarityBadge>
+              <ArrowIcon>→</ArrowIcon>
+            </SimilarityContainer>
+
+            {/* 심슨 캐릭터 사진 */}
+            <ImageCircle>
+              {!imageError ? (
+                <Image
+                  src={portraitUrl}
+                  alt={character.name}
+                  fill
+                  style={{ objectFit: "cover" }}
+                  onError={() => setImageError(true)}
+                  unoptimized
+                />
+              ) : (
+                <div
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "4rem",
+                  }}
+                >
+                  🎭
+                </div>
+              )}
+            </ImageCircle>
+          </ComparisonSection>
+
           {/* 캐릭터 이름 */}
-          <h2
-            style={{
-              textAlign: "center",
-              fontSize: "2rem",
-              fontWeight: "bold",
-              marginBottom: "0.5rem",
-            }}
-          >
-            {character.name}
-          </h2>
-          {/* 유사도 배지 */}
-          <div style={{ textAlign: "center" }}>
-            <SimilarityBadge similarity={similarity}>
-              {similarity}% 유사
-            </SimilarityBadge>
-          </div>
-          {/* 캐릭터 정보 */}
-          {character.occupation && (
-            <InfoSection>
-              <InfoLabel>직업</InfoLabel>
-              <InfoValue>{character.occupation}</InfoValue>
-            </InfoSection>
-          )}
-          {character.gender && (
-            <InfoSection>
-              <InfoLabel>성별</InfoLabel>
-              <InfoValue>{character.gender}</InfoValue>
-            </InfoSection>
-          )}
-          {character.age && (
-            <InfoSection>
-              <InfoLabel>나이</InfoLabel>
-              <InfoValue>{character.age}세</InfoValue>
-            </InfoSection>
-          )}
-          {character.status && (
-            <InfoSection>
-              <InfoLabel>상태</InfoLabel>
-              <InfoValue>{character.status}</InfoValue>
-            </InfoSection>
-          )}
-          {/* 명대사 */}
-          {character.phrases && character.phrases.length > 0 && (
-            <PhrasesSection>
-              <h3
-                style={{
-                  fontSize: "1rem",
-                  fontWeight: "600",
-                  marginBottom: "0.75rem",
-                  color: "#374151",
-                }}
-              >
-                💬 명대사
-              </h3>
-              <ul style={{ listStyle: "none", padding: 0 }}>
-                {character.phrases.slice(0, 3).map((phrase, index) => (
-                  <PhraseItem key={index}>{phrase}</PhraseItem>
-                ))}
-              </ul>
-            </PhrasesSection>
-          )}
-          {/* 다시 시도 버튼 */}
-          <div style={{ textAlign: "center", marginTop: "2rem" }}>
+          <CharacterName>{character.name}</CharacterName>
+
+          <Divider />
+
+          {/* 버튼들 */}
+          <ButtonContainer>
             <Button
-              onClick={onRetry}
+              onClick={handleMoreInfo}
               size="lg"
               style={{
-                width: "100%",
-                maxWidth: "300px",
+                background: "linear-gradient(135deg, #ff6f00 0%, #ffa000 100%)",
+                color: "white",
+                fontWeight: "bold",
+                fontSize: "1.125rem",
+                padding: "1.25rem 2rem",
+                borderRadius: "20px",
+                cursor: "pointer",
+              }}
+            >
+              📚 심슨 정보가 더 궁금하신가요?
+            </Button>
+            <Button
+              onClick={onRetry}
+              variant="outline"
+              size="lg"
+              style={{
+                fontWeight: "bold",
+                fontSize: "1rem",
+                padding: "1rem 2rem",
+                borderRadius: "20px",
+                cursor: "pointer",
               }}
             >
               🔄 다시 시도하기
             </Button>
-          </div>
+          </ButtonContainer>
         </CardContent>
-      </Card>
+      </ResultCardStyled>
     </ResultContainer>
   );
 }

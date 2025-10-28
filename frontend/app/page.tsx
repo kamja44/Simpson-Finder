@@ -6,6 +6,60 @@ import ImageUploader from "@/components/ImageUploader";
 import ResultCard from "@/components/ResultCard";
 import { MatchResult } from "@/types/character";
 import { useState } from "react";
+import styled from "@emotion/styled";
+import { keyframes } from "@emotion/react";
+
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const PageWrapper = styled.div`
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: radial-gradient(
+        circle at 20% 50%,
+        rgba(255, 216, 155, 0.3) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 80% 80%,
+        rgba(25, 84, 123, 0.3) 0%,
+        transparent 50%
+      );
+    pointer-events: none;
+  }
+`;
+
+const MainContainer = styled.main`
+  position: relative;
+  z-index: 1;
+  container-type: inline-size;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  animation: ${fadeIn} 0.8s ease-out;
+
+  @media (min-width: 768px) {
+    padding: 3rem 2rem;
+  }
+`;
 
 /**
  * Simpson Finder - 메인 페이지
@@ -18,13 +72,13 @@ import { useState } from "react";
  */
 
 export default function Home() {
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null); // 업로드된 이미지 상태
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [matchResult, setMatchResult] = useState<MatchResult | null>(null);
 
   // 이미지 업로드 핸들러
   const handleImageUpload = (imageUrl: string) => {
     setUploadedImage(imageUrl);
-    setMatchResult(null); // 새 이미지 업로드 시 기존 매칭 결과 초기화
+    setMatchResult(null);
   };
 
   // 매칭 완료 핸들러
@@ -39,16 +93,14 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-yellow-100 to-yellow-200">
-      <header className="py-8">
-        <Header />
-      </header>
+    <PageWrapper>
+      <Header />
 
-      <main className="container mx-auto px-4 py-8">
+      <MainContainer>
         {/* 1단계: 이미지 업로드 */}
         {!uploadedImage && <ImageUploader onImageUpload={handleImageUpload} />}
 
-        {/* 2단계: 캐릭터 매칭 (백엔드 API 사용) */}
+        {/* 2단계: 캐릭터 매칭 */}
         {uploadedImage && !matchResult && (
           <CharacterMatcher
             uploadedImage={uploadedImage}
@@ -57,10 +109,14 @@ export default function Home() {
         )}
 
         {/* 3단계: 결과 표시 */}
-        {matchResult && (
-          <ResultCard matchResult={matchResult} onRetry={handleRetry} />
+        {matchResult && uploadedImage && (
+          <ResultCard
+            matchResult={matchResult}
+            onRetry={handleRetry}
+            uploadedImage={uploadedImage}
+          />
         )}
-      </main>
-    </div>
+      </MainContainer>
+    </PageWrapper>
   );
 }
