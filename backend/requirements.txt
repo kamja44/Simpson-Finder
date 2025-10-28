@@ -1,0 +1,20 @@
+# FastAPI web framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+
+# CORS and file upload
+python-multipart==0.0.6
+
+# AI/ML libraries
+torch==2.1.2
+torchvision==0.16.2
+transformers==4.37.0
+pillow==10.2.0
+numpy==1.26.3
+
+# CLIP model
+open-clip-torch==2.24.0
+
+# Utilities
+python-dotenv==1.0.0
+requests==2.31.0
