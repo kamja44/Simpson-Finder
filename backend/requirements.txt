@@ -6,15 +6,15 @@ uvicorn[standard]==0.27.0
 python-multipart==0.0.6
 
 # AI/ML libraries
-torch==2.1.2
-torchvision==0.16.2
-transformers==4.37.0
-pillow==10.2.0
-numpy==1.26.3
+torch>=2.5.0
+torchvision>=0.20.0
+transformers>=4.37.0
+pillow>=10.2.0
+numpy>=1.26.3
 
 # CLIP model
-open-clip-torch==2.24.0
+open-clip-torch>=2.24.0
 
 # Utilities
-python-dotenv==1.0.0
-requests==2.31.0
+python-dotenv>=1.0.0
+requests>=2.31.0
