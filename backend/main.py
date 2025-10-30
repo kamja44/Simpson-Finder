@@ -20,10 +20,15 @@ app = FastAPI(
     version="1.0.0"
 )
 
+ALLOWED_ORIGINS = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:3000,http://localhost:3001"
+).split(",")
+
 # CORS 설정 (Next.js에서 접근 허용)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],
+    allow_origins=ALLOWED_ORIGINS, 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -39,6 +44,8 @@ async def root():
         "status": "running",
         "version": "1.0.0"
     }
+
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 
 @app.post('/api/match')
 async def match_character(file: UploadFile = File(...)) -> Dict[str, Any]:
@@ -60,6 +67,13 @@ async def match_character(file: UploadFile = File(...)) -> Dict[str, Any]:
 
         # 1. 업로드된 이미지 읽기
         image_data = await file.read()
+
+        if len(image_data) > MAX_FILE_SIZE:
+            raise HTTPException(
+                status_code=413,
+                detail="파일이 너무 큽니다 (최대 10MB)"
+            )
+        
         print(f"📸 이미지 분석 중: {file.filename}")
 
         # 2. CLIP 임베딩 추출

@@ -65,7 +65,9 @@ async function matchCharacterAPI(imageUrl: string): Promise<MatchResult> {
     const formData = new FormData();
     formData.append("file", blob, "user-photo.jpg");
 
-    const apiResponse = await fetch("http://localhost:8000/api/match", {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+    const apiResponse = await fetch(`${API_URL}/api/match`, {
       method: "POST",
       body: formData,
     });
