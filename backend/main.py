@@ -117,7 +117,8 @@ async def health_check():
 
 if __name__ == "__main__":
     # 서버 실행
-    port = int(os.getenv("PORT", 8000))
+    # Hugging Face Spaces는 7860 포트 사용, 로컬 개발은 8000
+    port = int(os.getenv("PORT", 7860))
     uvicorn.run(
         "main:app",
         host="0.0.0.0",

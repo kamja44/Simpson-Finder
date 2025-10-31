@@ -1,76 +1,91 @@
-# Simpson Finder - Backend API
+---
+title: Simpson Finder Backend
+emoji: 🍩
+colorFrom: yellow
+colorTo: pink
+sdk: docker
+pinned: false
+---
 
-Python FastAPI 기반 AI 매칭 서버
+# Simpson Finder Backend API
 
-## 설치 방법
+AI-powered Simpson character matching service using CLIP embeddings.
 
-```bash
-# 가상환경 생성 (권장)
-python -m venv venv
+## 🎯 Features
 
-# 가상환경 활성화
-# Windows
-venv\Scripts\activate
-# Mac/Linux
-source venv/bin/activate
+- **CLIP-based image similarity**: OpenAI ViT-B-32 model
+- **100+ Simpson characters**: Pre-computed embeddings
+- **RESTful API**: FastAPI framework
+- **Cosine similarity matching**: Top-3 candidates with similarity scores
 
-# 패키지 설치
-pip install -r requirements.txt
+## 🚀 API Endpoints
+
+### `GET /`
+Health check endpoint
+
+**Response:**
+```json
+{
+  "message": "Simpson Finder Backend API",
+  "status": "running",
+  "version": "1.0.0"
+}
 ```
 
-## 실행 방법
-
-```bash
-# 개발 서버 실행
-python main.py
-
-# 또는
-uvicorn main:app --reload --port 8000
-```
-
-서버 실행 후: http://localhost:8000
-
-API 문서: http://localhost:8000/docs
-
-## API 엔드포인트
-
-### POST /api/match
-사용자 이미지를 받아 닮은 심슨 캐릭터 반환
+### `POST /api/match`
+Upload image and get matched Simpson character
 
 **Request:**
-- Content-Type: multipart/form-data
-- file: 이미지 파일
+- Method: `POST`
+- Content-Type: `multipart/form-data`
+- Body: `file` (image file, max 3MB)
 
 **Response:**
 ```json
 {
   "character": {
-    "id": 1,
-    "name": "Homer Simpson",
-    "age": 39,
-    "gender": "Male"
+    "id": 100,
+    "name": "Marge Simpson",
+    "age": 36,
+    "gender": "Female",
+    "occupation": "Homemaker",
+    "portrait_path": "/character/100.webp"
   },
-  "similarity": 85
+  "similarity": 95,
+  "candidates": [...]
 }
 ```
 
-## 구조
+### `GET /api/health`
+Health check endpoint
 
-```
-backend/
-├── main.py              # FastAPI 서버
-├── requirements.txt     # Python 패키지
-├── .env                 # 환경 변수
-├── services/
-│   ├── clip_service.py      # CLIP 임베딩
-│   └── matching_service.py  # 매칭 로직
-└── data/
-    └── prototypes.json      # 캐릭터 임베딩
+**Response:**
+```json
+{
+  "status": "healthy"
+}
 ```
 
-## 다음 단계
+## 🛠️ Tech Stack
 
-1. CLIP 모델 로딩
-2. 캐릭터 임베딩 생성
-3. 코사인 유사도 매칭
-4. 스타일 변환 (선택)
+- **Framework**: FastAPI
+- **AI Model**: OpenCLIP ViT-B-32 (OpenAI pretrained)
+- **ML Framework**: PyTorch (CPU)
+- **Image Processing**: Pillow
+- **Embeddings**: 512-dimensional vectors
+- **Similarity**: Cosine similarity
+
+## 📊 Memory Usage
+
+- **RAM**: ~1.5GB
+- **Model Size**: ViT-B-32 (~600MB)
+- **Character Embeddings**: 100 characters (512D each)
+
+## 🔧 Environment Variables
+
+- `PORT`: Server port (default: 7860 for Hugging Face)
+- `ALLOWED_ORIGINS`: CORS allowed origins (comma-separated)
+
+## 📄 License
+
+MIT
