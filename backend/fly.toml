@@ -17,6 +17,14 @@ primary_region = 'nrt'
   max_machines_running = 1
   processes = ['app']
 
+  # Health check 설정 (모델 로딩 시간 고려)
+  [[http_service.checks]]
+    grace_period = "60s"  # 서버 시작 후 60초 대기
+    interval = "30s"      # 30초마다 체크
+    method = "GET"
+    timeout = "5s"        # 응답 대기 시간
+    path = "/api/health"  # Health check 엔드포인트
+
 [[vm]]
   memory = '2gb'
   cpu_kind = 'shared'
