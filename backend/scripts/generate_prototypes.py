@@ -16,7 +16,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from services.clip_service import clip_service
 
-def fetch_characters(max_pages=50):
+def fetch_characters(max_pages=25):
     """
     The Simpsons API에서 캐릭터 목록 조회
     - 페이지네이션 방식 (페이지당 20개)
@@ -67,7 +67,7 @@ def generate_prototypes():
     모든 캐릭터의 임베딩 생성 및 저장
     """
     # 캐릭터 목록 조회 (5페이지 = 100개)
-    characters = fetch_characters(max_pages=50)
+    characters = fetch_characters(max_pages=25)
     
     prototypes = []
     success_count = 0
